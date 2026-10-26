@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Studio - Pro QR Generator & Customizer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- QR Code Styling Library -->
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jspdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300">
+
+    <!-- Header Navigation -->
+    <header class="w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i class="fa-solid fa-qrcode text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent">QR Studio Pro</span>
+                    <span class="text-[10px] uppercase tracking-wider font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full ml-2">v2.0</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-4">
+    <button id="btn-reset-design" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center space-x-1.5" title="Reset All Settings">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span class="hidden sm:inline">Reset</span>
+    </button>
+
+    <button id="btn-show-history" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center space-x-2">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span class="hidden sm:inline">History</span>
+        <span id="history-badge" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-xs font-bold">0</span>
+    </button>
+    
+    <button id="theme-toggle" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-600 dark:text-amber-400">
+        <i class="fa-solid fa-moon dark:hidden"></i>
+        <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+    </button>
+</div>
+        </div>
+    </header>
+
+    <!-- Main Content Workspace -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div id="workspace-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Control Panel -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Card Container -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 p-6 space-y-6">
+                    
+                    <!-- Content Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Target URL or Content</label>
+                            <span id="char-count" class="text-xs font-mono text-slate-400">0/500</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-link text-sm"></i>
+                            </span>
+                            <input type="text" id="qr-input" value="https://example.com" placeholder="Enter URL or text..." 
+                                class="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm transition">
+                            <button id="btn-copy-input" class="absolute right-2 top-2 bottom-2 px-3 text-xs font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition" title="Copy Content">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preset Themes Bar -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">Color Presets</label>
+                        <div class="grid grid-cols-5 gap-2">
+                            <button type="button" data-preset="classic" class="preset-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:scale-105 transition flex flex-col items-center space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-300"></div>
+                                <span class="text-[10px] font-medium">Classic</span>
+                            </button>
+                            <button type="button" data-preset="neon" class="preset-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:scale-105 transition flex flex-col items-center space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-cyan-400 border border-emerald-400"></div>
+                                <span class="text-[10px] font-medium">Neon</span>
+                            </button>
+                            <button type="button" data-preset="pastel" class="preset-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:scale-105 transition flex flex-col items-center space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-pink-400 border border-purple-300"></div>
+                                <span class="text-[10px] font-medium">Pastel</span>
+                            </button>
+                            <button type="button" data-preset="forest" class="preset-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:scale-105 transition flex flex-col items-center space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-emerald-700 border border-teal-500"></div>
+                                <span class="text-[10px] font-medium">Forest</span>
+                            </button>
+                            <button type="button" data-preset="midnight" class="preset-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:scale-105 transition flex flex-col items-center space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-indigo-600 border border-indigo-400"></div>
+                                <span class="text-[10px] font-medium">Midnight</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Frame Controls & Text Add-on -->
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Frame Template & Text</label>
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Custom Add-on</span>
+                        </div>
+
+                        <!-- Template buttons -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button type="button" data-template="none" class="frame-btn p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 text-xs font-semibold transition text-center">None</button>
+                            <button type="button" data-template="scan" class="frame-btn p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 text-xs font-semibold transition text-center">Scan Me</button>
+                            <button type="button" data-template="website" class="frame-btn p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 text-xs font-semibold transition text-center">Visit Website</button>
+                            <button type="button" data-template="follow" class="frame-btn p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 text-xs font-semibold transition text-center">Follow Us</button>
+                        </div>
+
+                        <!-- Custom Frame Text Inputs -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Top Frame Text</label>
+                                <input type="text" id="frame-text-top" placeholder="e.g. SCAN HERE" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Bottom Frame Text</label>
+                                <input type="text" id="frame-text-bottom" placeholder="e.g. VISIT WEBSITE" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <!-- Frame Styling controls -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Frame Color</label>
+                                <input type="color" id="frame-bg-color" value="#0f172a" class="w-full h-8 rounded-lg cursor-pointer bg-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Text Color</label>
+                                <input type="color" id="frame-text-color" value="#ffffff" class="w-full h-8 rounded-lg cursor-pointer bg-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Border Radius</label>
+                                <select id="frame-radius" class="w-full h-8 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs">
+                                    <option value="12px">Rounded</option>
+                                    <option value="24px">Extra Rounded</option>
+                                    <option value="0px">Square</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Text Style</label>
+                                <select id="frame-font-style" class="w-full h-8 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs">
+                                    <option value="uppercase font-extrabold tracking-wider">Bold Uppercase</option>
+                                    <option value="font-semibold tracking-normal">Normal</option>
+                                    <option value="italic font-medium">Italic</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colors & Pattern Style -->
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-4">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">QR Code Colors & Pattern</label>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Dots Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" id="qr-color" value="#0f172a" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent">
+                                    <input type="text" id="qr-color-text" value="#0f172a" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs font-mono">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Canvas BG</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" id="qr-bg-color" value="#ffffff" class="w-9 h-9 rounded-lg cursor-pointer bg-transparent">
+                                    <input type="text" id="qr-bg-color-text" value="#ffffff" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/50 text-xs font-mono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Dots Style</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button type="button" data-style="square" class="dots-btn py-2 px-2 rounded-xl border-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 text-xs font-medium text-center">Square</button>
+                                <button type="button" data-style="dots" class="dots-btn py-2 px-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-center">Dots</button>
+                                <button type="button" data-style="extra-rounded" class="dots-btn py-2 px-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-center">Rounded</button>
+                                <button type="button" data-style="classy" class="dots-btn py-2 px-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-center">Classy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Logo / Icon Picker -->
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Center Logo Icon</label>
+                            <span class="text-xs text-slate-400">Vector SVG / Image Upload</span>
+                        </div>
+
+                        <!-- Icon Preset Buttons -->
+                        <div class="flex flex-wrap gap-2" id="icon-picker">
+                            <button type="button" data-icon="" class="icon-btn px-3 py-2 rounded-lg border-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 text-xs font-medium">None</button>
+                            <button type="button" data-icon="globe" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-globe"></i></button>
+                            <button type="button" data-icon="wifi" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-wifi"></i></button>
+                            <button type="button" data-icon="heart" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-heart text-rose-500"></i></button>
+                            <button type="button" data-icon="star" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-star text-amber-400"></i></button>
+                            <button type="button" data-icon="twitter" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-brands fa-x-twitter"></i></button>
+                            <button type="button" data-icon="instagram" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-brands fa-instagram text-pink-500"></i></button>
+                            <button type="button" data-icon="github" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-brands fa-github"></i></button>
+                            <button type="button" data-icon="mail" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-envelope"></i></button>
+                            <button type="button" data-icon="cart" class="icon-btn px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:border-slate-400"><i class="fa-solid fa-cart-shopping"></i></button>
+                        </div>
+
+                        <!-- Custom Image File Upload -->
+                        <div class="flex items-center space-x-3 pt-2">
+                            <label class="cursor-pointer px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 transition flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Upload Custom Logo</span>
+                                <input type="file" id="logo-file-input" accept="image/*" class="hidden">
+                            </label>
+                            <button id="btn-remove-logo" class="hidden px-3 py-2 text-xs font-semibold text-rose-500 hover:text-rose-600 transition flex items-center space-x-1">
+                                <i class="fa-solid fa-xmark"></i>
+                                <span>Remove</span>
+                            </button>
+                            <span id="logo-filename" class="text-xs text-slate-400 truncate max-w-[150px]"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Column: Live Interactive Card Preview & Download Export -->
+            <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center">
+                    
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-6">Live Frame & QR Preview</h3>
+
+                    <!-- Framed QR Preview Box Container -->
+                    <div id="export-target-wrapper" class="p-6 transition-all duration-300 flex flex-col items-center justify-center max-w-[320px] w-full shadow-md" style="background-color: #0f172a; border-radius: 12px;">
+                        <div id="preview-top-text" class="text-center mb-3 font-extrabold uppercase tracking-wider text-xs transition-all" style="color: #ffffff;">SCAN ME</div>
+                        <div id="qr-canvas-container" class="bg-white p-3 rounded-xl flex items-center justify-center shadow-inner"></div>
+                        <div id="preview-bottom-text" class="text-center mt-3 font-extrabold uppercase tracking-wider text-xs transition-all hidden" style="color: #ffffff;">VISIT WEBSITE</div>
+                    </div>
+
+                    <!-- Resolution Options -->
+                    <div class="w-full mt-6">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Export Resolution</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" data-res="400" class="res-btn py-1.5 px-2 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-xs font-medium text-emerald-600 dark:text-emerald-400">400px</button>
+                            <button type="button" data-res="800" class="res-btn py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400">800px (HD)</button>
+                            <button type="button" data-res="1200" class="res-btn py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400">1200px (Print)</button>
+                        </div>
+                    </div>
+
+                    <!-- Export Actions Grid -->
+                    <div class="grid grid-cols-2 gap-3 w-full mt-6">
+                        <button id="btn-export-png" class="py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-download"></i>
+                            <span>PNG (With Frame)</span>
+                        </button>
+                        <button id="btn-export-svg" class="py-3 px-4 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-code"></i>
+                            <span>SVG</span>
+                        </button>
+                        <button id="btn-export-webp" class="py-2.5 px-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl text-xs transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-image"></i>
+                            <span>WEBP</span>
+                        </button>
+                        <button id="btn-export-pdf" class="py-2.5 px-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl text-xs transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i>
+                            <span>PDF Document</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- History Modal / Drawer -->
+        <div id="history-view" class="hidden space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-bold tracking-tight">Generated QR Codes History</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Stored locally in your browser cache.</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="btn-clear-history" class="px-3 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition">Clear All</button>
+                    <button id="btn-back-workspace" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Back to Generator</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="history-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div id="history-empty" class="hidden text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <i class="fa-solid fa-box-open text-4xl text-slate-300 dark:text-slate-700 mb-3 block"></i>
+                <h3 class="font-bold text-sm mb-1">No saved history yet</h3>
+                <p class="text-xs text-slate-400">Generate QR codes to build your history log.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer with Legal Links -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-400 space-y-2">
+        <p>&copy; 2026 QR Studio Pro. Built with AI, clean CSS, and web standards.</p>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+        </div>
+    </div>
+</body>
+</html>
